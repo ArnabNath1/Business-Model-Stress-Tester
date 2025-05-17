@@ -1,0 +1,45 @@
+{
+    "name": "EcoTech Solutions",
+    "industry": "Renewable Energy Technology",
+    "target_market": "Small to medium-sized businesses looking to reduce carbon footprint",
+    "value_proposition": "Affordable IoT-based energy monitoring and optimization systems that reduce energy costs by 30% within the first year",
+    "revenue_streams": [
+      "Hardware sales (monitoring devices)",
+      "Software subscription (analytics platform)",
+      "Consulting services",
+      "Maintenance contracts"
+    ],
+    "cost_structure": [
+      "Hardware manufacturing",
+      "R&D",
+      "Cloud infrastructure",
+      "Sales and marketing",
+      "Technical support"
+    ],
+    "key_resources": [
+      "Proprietary algorithms",
+      "IoT hardware design",
+      "Engineering talent",
+      "Customer data",
+      "Partner network"
+    ],
+    "key_partners": [
+      "Hardware manufacturers",
+      "Installation contractors",
+      "Cloud service providers",
+      "Energy consultants"
+    ],
+    "competitors": [
+      "EnergySmart Inc.",
+      "GreenMetrics",
+      "PowerOptimize",
+      "Traditional energy consultancies"
+    ],
+    "current_challenges": "Scaling production to meet demand while maintaining quality. Educating the market about ROI of energy optimization systems. Recruiting specialized IoT engineers.",
+    "financials": {
+      "annual_revenue": "2,500,000",
+      "profit_margin": "18",
+      "burn_rate": "150,000",
+      "runway": "24"
+    }
+}
