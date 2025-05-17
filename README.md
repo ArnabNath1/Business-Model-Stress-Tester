@@ -101,7 +101,7 @@ python business_model_stress_tester.py --config custom_config.yaml
 
 ```yaml
 model:
-  name: mixtral-8x7b-32768
+  name: gemma2-9b-it
   temperature: 0.7
   max_tokens: 4096
 
