@@ -2,50 +2,52 @@
 """
 Business Model Stress-Tester
 
-This script uses the Groq API to analyze a business model and simulate various
+This script uses the OpenAI API to analyze a business model and simulate various
 market conditions, competitor moves, and economic scenarios to identify vulnerabilities
 and suggest contingency plans.
 
 Requirements:
 - python-dotenv (for environment variables)
-- groq package (for Groq API)
+- openai package (for OpenAI API)
 """
 
 import os
+import re
 import json
 import time
 import argparse
+import requests
 from typing import Dict, List, Any, Optional
 from dotenv import load_dotenv
-import groq
-import re
 
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Configure API key
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-if not GROQ_API_KEY:
-    raise ValueError("GROQ_API_KEY not found in environment variables or .env file")
+# Configure OpenRouter API
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
 
-# Configure the Groq client
-client = groq.Client(api_key=GROQ_API_KEY)
+if not OPENROUTER_API_KEY:
+    raise ValueError("OPENROUTER_API_KEY not found in environment variables")
 
-# Define the model to use
+# Model configuration
 MODEL_CONFIG = {
-    "name": "gemma2-9b-it",  # Better model for structured output
-    "max_tokens": 4096,
-    "temperature": 0.7,
-    "response_format": {"type": "json"}  # Request JSON formatted responses
+    "name": "qwen/qwen3-0.6b-04-28:free",  # One of OpenRouter's best models
+    "max_tokens": 4000,
+    "temperature": 0.7
 }
 
 class BusinessModelStressTester:
-    """Class to handle business model stress testing using Groq API."""
+    """Class to handle business model stress testing using OpenRouter API."""
     
     def __init__(self):
-        """Initialize the stress tester with the Groq model."""
-        self.client = client
+        """Initialize the stress tester with OpenRouter configuration."""
+        self.headers = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            # "HTTP-Referer": "https://github.com/yourusername/business-model-stress-tester",
+            "Content-Type": "application/json"
+        }
         self.model = MODEL_CONFIG["name"]
         
     def get_business_model_details(self) -> Dict[str, Any]:
@@ -86,55 +88,117 @@ class BusinessModelStressTester:
             
         return business_model
     
+    def _make_request(self, messages: List[Dict[str, str]]) -> Dict[str, Any]:
+        """Make a request to OpenRouter API."""
+        try:
+            response = requests.post(
+                f"{OPENROUTER_BASE_URL}/chat/completions",
+                headers=self.headers,
+                json={
+                    "model": self.model,
+                    "messages": messages,
+                    "max_tokens": MODEL_CONFIG["max_tokens"],
+                    "temperature": MODEL_CONFIG["temperature"]
+                }
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            raise ValueError(f"OpenRouter API request failed: {str(e)}")
+
     def generate_scenarios(self, business_model: Dict[str, Any]) -> Dict[str, List[str]]:
-        """Generate various scenarios to stress test the business model."""
-        prompt = f"""
-        Based on the following business model, generate realistic stress test scenarios in these categories:
-        1. Market Conditions (economic downturns, market shifts, etc.)
-        2. Competitor Moves (new entrants, pricing strategies, etc.)
-        3. Supply Chain Disruptions
-        4. Regulatory Changes
-        5. Technology Shifts
-        6. Consumer Behavior Changes
+        """Generate stress test scenarios using OpenRouter."""
+        prompt = f"""Generate stress test scenarios for this business model in strict JSON format.
+        Business Model: {json.dumps(business_model, indent=2)}
         
-        For each category, provide 3-5 specific, realistic scenarios that could impact this business.
-        
-        Business Model Details:
-        {json.dumps(business_model, indent=2)}
-        
-        Format your response as a JSON object with categories as keys and lists of scenarios as values.
+        Return ONLY a JSON object with exactly this structure:
+        {{
+            "market_conditions": [
+                "Scenario 1",
+                "Scenario 2"
+            ],
+            "competitor_moves": [
+                "Scenario 1",
+                "Scenario 2"
+            ],
+            "supply_chain": [
+                "Scenario 1",
+                "Scenario 2"
+            ],
+            "regulatory": [
+                "Scenario 1",
+                "Scenario 2"
+            ],
+            "technology": [
+                "Scenario 1",
+                "Scenario 2"
+            ]
+        }}
         """
         
-        print("\nGenerating stress test scenarios...")
-        completion = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": "You are a business analyst expert."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=MODEL_CONFIG["temperature"],
-            max_tokens=MODEL_CONFIG["max_tokens"]
-        )
-        
-        response_text = completion.choices[0].message.content
+        messages = [
+            {"role": "system", "content": "You are a business analyst expert. Return only valid JSON."},
+            {"role": "user", "content": prompt}
+        ]
         
         try:
-            # Extract JSON from the response
-            json_start = response_text.find('{')
-            json_end = response_text.rfind('}') + 1
-            if json_start >= 0 and json_end > json_start:
-                json_content = response_text[json_start:json_end]
-                scenarios = json.loads(json_content)
-            else:
-                # Fallback if JSON parsing fails
-                scenarios = self._parse_scenarios_from_text(response_text)
-        except Exception as e:
-            print(f"Error parsing scenarios: {e}")
-            # Fallback to text parsing
-            scenarios = self._parse_scenarios_from_text(response_text)
+            print("\nGenerating stress test scenarios...")
+            response = self._make_request(messages)
             
-        return scenarios
-    
+            if not response or 'choices' not in response:
+                raise ValueError("Invalid response structure from API")
+                
+            content = response['choices'][0]['message']['content']
+            
+            # Clean and extract JSON
+            json_start = content.find('{')
+            json_end = content.rfind('}') + 1
+            
+            if json_start >= 0 and json_end > json_start:
+                json_str = content[json_start:json_end].strip()
+                try:
+                    scenarios = json.loads(json_str)
+                    if not isinstance(scenarios, dict):
+                        raise ValueError("Response is not a dictionary")
+                    return scenarios
+                except json.JSONDecodeError:
+                    print("Failed to parse JSON response, using fallback structure")
+            
+            # Return default structure if parsing fails
+            return {
+                "market_conditions": [
+                    f"Economic downturn affecting {business_model['industry']}",
+                    "Market saturation and increased competition"
+                ],
+                "competitor_moves": [
+                    "New competitor entry with innovative solution",
+                    "Price war initiated by major competitor"
+                ],
+                "supply_chain": [
+                    "Supply chain disruption",
+                    "Raw material cost increase"
+                ],
+                "regulatory": [
+                    f"New regulations in {business_model['industry']}",
+                    "Changes in compliance requirements"
+                ],
+                "technology": [
+                    "Disruptive technology emergence",
+                    "Legacy system obsolescence"
+                ]
+            }
+            
+        except Exception as e:
+            print(f"Error generating scenarios: {str(e)}")
+            # Return basic scenario structure as fallback
+            return {
+                "market_conditions": ["Market downturn", "Competition increase"],
+                "competitor_moves": ["New market entry", "Price competition"],
+                "supply_chain": ["Supply disruption", "Cost increase"],
+                "regulatory": ["New regulations", "Policy changes"],
+                "technology": ["Tech disruption", "Innovation pressure"]
+            }
+
     def _parse_scenarios_from_text(self, text: str) -> Dict[str, List[str]]:
         """
         Fallback method to parse scenarios from text if JSON parsing fails.
@@ -218,21 +282,16 @@ class BusinessModelStressTester:
             """
             
             try:
-                completion = self.client.chat.completions.create(
-                    model=self.model,
-                    messages=[
-                        {"role": "system", "content": "You are a business analyst. Respond only with valid JSON."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.5,  # Lower temperature for more consistent JSON
-                    max_tokens=2000,
-                    response_format={"type": "json"}  # Request JSON response
-                )
+                # Use _make_request instead of client
+                response = self._make_request([
+                    {"role": "system", "content": "You are a business analyst. Respond only with valid JSON."},
+                    {"role": "user", "content": prompt}
+                ])
                 
-                response_text = completion.choices[0].message.content
+                content = response['choices'][0]['message']['content']
                 
                 # Clean and parse JSON
-                json_content = self._clean_json_response(response_text)
+                json_content = self._clean_json_response(content)
                 chunk_analysis = json.loads(json_content)
                 
                 # Merge chunk results
@@ -243,7 +302,6 @@ class BusinessModelStressTester:
                     
             except Exception as e:
                 print(f"Error processing chunk: {str(e)}")
-                # Add error information to analysis
                 combined_analysis["errors"] = combined_analysis.get("errors", [])
                 combined_analysis["errors"].append(str(e))
         
@@ -276,18 +334,20 @@ class BusinessModelStressTester:
     def generate_report(self, business_model: Dict[str, Any], 
                        scenarios: Dict[str, List[str]],
                        analysis: Dict[str, Any]) -> str:
-        """
-        Generate a comprehensive report with the analysis results.
+        # Update to use _make_request instead of client
+        print("\nGenerating comprehensive report...")
+        response = self._make_request([
+            {"role": "system", "content": "You are a business analyst expert."},
+            {"role": "user", "content": self._create_report_prompt(business_model, scenarios, analysis)}
+        ])
         
-        Args:
-            business_model: Dictionary containing business model details.
-            scenarios: Dictionary of stress test scenarios.
-            analysis: Dictionary containing vulnerability analysis.
-            
-        Returns:
-            String containing the formatted report.
-        """
-        prompt = f"""
+        return response['choices'][0]['message']['content']
+
+    def _create_report_prompt(self, business_model: Dict[str, Any], 
+                            scenarios: Dict[str, List[str]],
+                            analysis: Dict[str, Any]) -> str:
+        """Create the prompt for report generation."""
+        return f"""
         Create a comprehensive business model stress test report based on the following information:
         
         Business Model:
@@ -310,19 +370,6 @@ class BusinessModelStressTester:
         
         Format the report in markdown for readability.
         """
-        
-        print("\nGenerating comprehensive report...")
-        completion = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": "You are a business analyst expert."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=MODEL_CONFIG["temperature"],
-            max_tokens=MODEL_CONFIG["max_tokens"]
-        )
-        
-        return completion.choices[0].message.content
     
     def run_stress_test(self, business_model: Optional[Dict[str, Any]] = None) -> str:
         """

@@ -1,37 +1,35 @@
 # Business Model Stress Tester 🚀
 
-An advanced AI-powered tool leveraging Groq's LLMs to perform comprehensive business model analysis, scenario simulation, and strategic planning.
+An AI-powered tool that analyzes business models through multiple scenarios to identify vulnerabilities and provide strategic recommendations.
 
 ## 🌟 Features
 
 - 🤖 **AI-Powered Analysis**
   - Dynamic scenario generation
   - Vulnerability assessment
+  - Risk scoring and prioritization
   - Strategic recommendations
-  - Risk mitigation strategies
 
 - 📊 **Comprehensive Reports**
   - Executive summaries
   - Risk heat maps
+  - Scenario analysis
   - Implementation roadmaps
-  - Financial impact analysis
 
-- 🔄 **Flexible Input/Output**
+- 🔄 **Flexible Input Options**
   - Interactive CLI interface
-  - JSON file input support
-  - Customizable report formats
-  - Export to Markdown/PDF
+  - JSON file input
+  - Custom configuration
+  - Markdown report output
 
-## 🛠️ Requirements
+## 📋 Requirements
 
 - Python 3.8+
-- Groq API key ([Get one here](https://console.groq.com))
+- OpenRouter API key
 - Required packages:
-  ```
-  groq==1.0.0
+  ```bash
   python-dotenv==1.0.0
-  pandas==2.0.0
-  numpy==1.24.0
+  requests==2.31.0
   ```
 
 ## 🚀 Quick Start
@@ -40,15 +38,14 @@ An advanced AI-powered tool leveraging Groq's LLMs to perform comprehensive busi
    ```bash
    git clone https://github.com/yourusername/business-model-stress-tester.git
    cd business-model-stress-tester
-   python -m venv venv
-   .\venv\Scripts\activate
    pip install -r requirements.txt
    ```
 
-2. **Configure Environment**
-   ```bash
-   copy .env.example .env
-   # Edit .env with your Groq API key
+2. **Configure API Key**
+   Create `.env` file:
+   ```properties
+   OPENROUTER_API_KEY=your_api_key_here
+   OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
    ```
 
 3. **Run Analysis**
@@ -60,109 +57,76 @@ An advanced AI-powered tool leveraging Groq's LLMs to perform comprehensive busi
 
 ### Interactive Mode
 ```bash
-python business_model_stress_tester.py --interactive
+python business_model_stress_tester.py
 ```
 
-### Batch Processing
+### Using JSON Input
 ```bash
-python business_model_stress_tester.py --input models/*.json --output reports/
+python business_model_stress_tester.py --input model.json
 ```
 
-### Custom Configuration
+### Custom Output Location
 ```bash
-python business_model_stress_tester.py --config custom_config.yaml
+python business_model_stress_tester.py --output custom_report.md
 ```
 
 ## 📁 Project Structure
 
 ```
-├── src/
-│   ├── __init__.py
-│   ├── analyzer.py          # Core analysis logic
-│   ├── models.py           # Data models
-│   └── utils.py            # Helper functions
-├── tests/
-│   ├── __init__.py
-│   ├── test_analyzer.py
-│   └── test_utils.py
-├── examples/
-│   ├── sample_model.json
-│   └── sample_report.md
-├── docs/
-│   ├── API.md
-│   └── CONTRIBUTING.md
-├── business_model_stress_tester.py
-├── requirements.txt
-├── setup.py
-└── README.md
+business-model-stress-tester/
+├── business_model_stress_tester.py  # Main script
+├── requirements.txt                 # Dependencies
+├── examples/                        # Example files
+│   ├── sample_model.json           # Sample input
+│   └── sample_report.md            # Sample output
+├── .env                            # API configuration
+└── README.md                       # Documentation
 ```
 
-## ⚙️ Configuration Options
+## 📝 Input Format
 
-```yaml
-model:
-  name: mixtral-8x7b-32768
-  temperature: 0.7
-  max_tokens: 4096
-
-analysis:
-  scenarios: 5
-  depth: "detailed"
-  risk_threshold: 0.7
-
-output:
-  format: "markdown"
-  include_graphs: true
-  save_raw_data: false
+```json
+{
+  "name": "Tech Startup",
+  "industry": "SaaS",
+  "target_market": "Small Businesses",
+  "value_proposition": "AI-powered automation",
+  "revenue_streams": ["Subscriptions", "Setup fees"],
+  "cost_structure": ["Development", "Marketing"],
+  "key_resources": ["Dev Team", "AI Models"],
+  "key_partners": ["Cloud Providers"],
+  "competitors": ["BigCorp", "StartupX"],
+  "current_challenges": "High customer acquisition costs"
+}
 ```
 
 ## 🔍 Troubleshooting
 
-### Common Issues
-
-| Issue | Solution |
-|-------|----------|
-| Model Access Error | Accept terms at [Groq Console](https://console.groq.com) |
-| Memory Error | Reduce batch size or use `--low-memory` flag |
-| API Rate Limit | Implement delay with `--rate-limit` option |
-| JSON Parse Error | Validate at [JSONLint](https://jsonlint.com) |
-
-### Debug Mode
-```bash
-python business_model_stress_tester.py --debug --log-level DEBUG
-```
+- **API Key Error**: Check `.env` file configuration
+- **JSON Parse Error**: Validate input JSON format
+- **Model Error**: Ensure OpenRouter API access
+- **Report Generation**: Check write permissions
 
 ## 🤝 Contributing
 
 1. Fork repository
-2. Create feature branch:
-   ```bash
-   git checkout -b feature/amazing-improvement
-   ```
-3. Make changes & test:
-   ```bash
-   pytest tests/
-   black src/
-   ```
-4. Submit PR with:
-   - Clear description
-   - Test coverage
-   - Documentation updates
-
-## 📈 Performance Tips
-
-- Use batch processing for multiple models
-- Enable caching with `--cache-dir`
-- Implement parallel processing with `--workers N`
-- Use compressed JSON for large datasets
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
 
 ## 📄 License
 
 MIT License - See [LICENSE](LICENSE) file
 
+## 🆘 Support
+
+- 📚 Check [Documentation](docs/)
+- 🐛 Report [Issues](https://github.com/yourusername/business-model-stress-tester/issues)
+- 📧 Contact: your.email@domain.com
 
 ## 🙏 Acknowledgments
 
-- Groq Team for API access
+- OpenRouter API team
 - Contributors & maintainers
 - Open source community
