@@ -85,6 +85,7 @@ business-model-stress-tester/
 
 ## 📝 Input Format
 
+<<<<<<< HEAD
 ```json
 {
   "name": "Tech Startup",
@@ -98,6 +99,23 @@ business-model-stress-tester/
   "competitors": ["BigCorp", "StartupX"],
   "current_challenges": "High customer acquisition costs"
 }
+=======
+```yaml
+model:
+  name: gemma2-9b-it
+  temperature: 0.7
+  max_tokens: 4096
+
+analysis:
+  scenarios: 5
+  depth: "detailed"
+  risk_threshold: 0.7
+
+output:
+  format: "markdown"
+  include_graphs: true
+  save_raw_data: false
+>>>>>>> 70a2ffceda8413a04250de432d46d40b3e4558cd
 ```
 
 ## 🔍 Troubleshooting
